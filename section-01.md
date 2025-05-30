@@ -1,12 +1,12 @@
-# 🧪 Thực hành CI/CD cơ bản: Jenkins & GitHub Actions
+# Thực hành CI/CD cơ bản: Jenkins & GitHub Actions
 
 > Mục tiêu: Hướng dẫn cài đặt và cấu hình hệ thống CI đơn giản bằng Jenkins (tự host) và GitHub Actions (hosted), trên nền Ubuntu 24.04.
 
 ---
 
-## 🔧 A. Jenkins – Thiết lập CI Pipeline cơ bản (Self-hosted)
+## A. Jenkins – Thiết lập CI Pipeline cơ bản (Self-hosted)
 
-### 📌 1. Cài đặt Jenkins trên Ubuntu 24.04
+### 1. Cài đặt Jenkins trên Ubuntu 24.04
 
 ```bash
 sudo apt update && sudo apt upgrade -y
@@ -31,7 +31,7 @@ sudo systemctl enable jenkins
 sudo systemctl start jenkins
 ```
 
-### 🔑 2. Truy cập Jenkins
+### 2. Truy cập Jenkins
 
 - Truy cập trình duyệt: `http://<IP_VM>:8080`
 - Lấy password ban đầu:
@@ -44,7 +44,7 @@ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 
 ---
 
-### 🧪 3. Tạo Pipeline Job cơ bản
+### 3. Tạo Pipeline Job cơ bản
 
 - Vào Jenkins dashboard → `New Item`
 - Đặt tên: `demo-ci`
@@ -80,7 +80,7 @@ pipeline {
 
 ---
 
-### ✅ Kết quả đạt được:
+### Kết quả đạt được:
 
 - Jenkins hoạt động trên VM Ubuntu
 - Tạo pipeline `demo-ci` với 3 bước: Build → Test → Deploy
@@ -88,9 +88,9 @@ pipeline {
 
 ---
 
-## 🐙 B. GitHub Actions – Tạo CI Pipeline trên GitHub
+## B. GitHub Actions – Tạo CI Pipeline trên GitHub
 
-### 📁 1. Tạo repository GitHub mới
+### 1. Tạo repository GitHub mới
 
 - Truy cập [https://github.com](https://github.com) → New repository
 - Đặt tên: `demo-ci-github-actions`
@@ -104,7 +104,7 @@ cd demo-ci-github-actions
 
 ---
 
-### 📝 2. Tạo workflow file
+### 2. Tạo workflow file
 
 Tạo thư mục và file workflow:
 
@@ -142,7 +142,7 @@ jobs:
 
 ---
 
-### 🚀 3. Commit và đẩy code
+### 3. Commit và đẩy code
 
 ```bash
 git add .
@@ -154,7 +154,7 @@ git push origin main
 
 ---
 
-### ✅ Kết quả đạt được:
+### Kết quả đạt được:
 
 - GitHub Actions tự động chạy khi có push lên nhánh `main`
 - Pipeline gồm các bước Build → Test → Deploy
@@ -173,7 +173,7 @@ git push origin main
 
 ---
 
-✅ **Next step (Gợi ý mở rộng):**
+**Next step (Gợi ý mở rộng):**
 - Thêm real unit test (Python, Node.js, Java...)
 - Build Docker image trong pipeline
 - Triển khai lên staging
