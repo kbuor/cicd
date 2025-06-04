@@ -36,50 +36,107 @@
 
 ## 3. Cấu hình bảo mật (Security Best Practices)
 
-### 3.1. Bắt buộc đăng nhập
+---
 
-- Enable Security
-- Use Jenkins own user database
-- Authorization: Matrix-based hoặc Role-based Strategy
+### 3.1. Bắt buộc đăng nhập và bật bảo mật
 
-### 3.2. Tạo người dùng và phân quyền
+1. Truy cập Jenkins UI → **Manage Jenkins**
+2. Chọn **Configure Global Security**
+3. Tích vào ô **Enable Security**
+4. Chọn mục **Jenkins’ own user database**
+   - Bỏ chọn **Allow users to sign up** nếu không muốn user tự đăng ký
+5. Trong phần **Authorization**, chọn:
+   - `Matrix-based security` để phân quyền chi tiết
+   - Hoặc `Role-Based Strategy` nếu đã cài plugin tương ứng
+6. Lưu lại cấu hình.
 
-- Tạo user: admin, dev, qa
-- Phân quyền theo nhu cầu (admin: full, dev: read/build, qa: read-only)
+---
 
-### 3.3. Bảo vệ secret trong pipeline
+### 3.2. Tạo người dùng Jenkins
+
+1. Vào **Manage Jenkins → Manage Users**
+2. Chọn **Create User**
+3. Nhập thông tin:
+   - Username: `admin`, `dev`, `qa`
+   - Password và Confirm Password
+   - Full name và Email (tuỳ chọn)
+4. Tạo từng user tương ứng với vai trò
+
+---
+
+### 3.3. Phân quyền theo vai trò (Matrix-based Security)
+
+1. Vào **Manage Jenkins → Configure Global Security**
+2. Trong phần Matrix Authorization Strategy:
+   - Thêm từng user (admin, dev, qa)
+3. Gán quyền như sau:
+
+| User  | Quyền                             |
+|--------|-----------------------------------|
+| admin | Tất cả quyền (administer, build, etc.) |
+| dev   | Read, Build, Workspace             |
+| qa    | Chỉ Read                           |
+
+4. Lưu lại cấu hình
+
+---
+
+### 3.4. Bảo vệ thông tin nhạy cảm trong Pipeline
+
+1. Cài plugin **Credentials Binding**
+2. Vào **Manage Jenkins → Credentials → Global**
+   - Add Credentials → Secret text (ví dụ: `MY_SECRET`)
+3. Trong `Jenkinsfile` sử dụng:
 
 ```groovy
 pipeline {
   agent any
   environment {
-    SECRET = credentials('jenkins-secret-id')
+    MY_SECRET = credentials('my-secret-id')
   }
   stages {
-    stage('Check') {
+    stage('Secret Test') {
       steps {
-        echo "Using secret"
+        echo "Using secret: ${MY_SECRET}"
       }
     }
   }
 }
 ```
 
-### 3.4. Kích hoạt CSRF Protection
-
-- Configure Global Security → Bật “Prevent Cross Site Request Forgery exploits”
+> Giá trị sẽ được **mask trong log** giúp ngăn rò rỉ thông tin
 
 ---
 
-### 3.5. Reverse Proxy và HTTPS (Nginx)
+### 3.5. Kích hoạt bảo vệ CSRF
 
-#### Cài đặt và cấu hình Nginx
+1. Vào **Manage Jenkins → Configure Global Security**
+2. Cuộn xuống phần **CSRF Protection**
+3. Tích chọn:
+   - ✅ Prevent Cross Site Request Forgery exploits
+4. Kiểm tra hoạt động sau khi bật
+
+---
+
+### 3.6. Cấu hình Reverse Proxy + HTTPS với Nginx
+
+#### Cài đặt Nginx
 
 ```bash
-sudo apt install nginx
+sudo apt update
+sudo apt install nginx -y
 ```
 
+#### Tạo file cấu hình tại `/etc/nginx/sites-available/jenkins`
+
 ```nginx
+server {
+    listen 80;
+    server_name jenkins.example.com;
+
+    return 301 https://$host$request_uri;
+}
+
 server {
     listen 443 ssl;
     server_name jenkins.example.com;
@@ -96,12 +153,31 @@ server {
 }
 ```
 
-### 3.6. Giới hạn IP truy cập
+#### Kích hoạt site và restart Nginx
+
+```bash
+sudo ln -s /etc/nginx/sites-available/jenkins /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+---
+
+### 3.7. Giới hạn IP truy cập Jenkins (tuỳ chọn)
+
+Trong block `location /` của Nginx:
 
 ```nginx
 allow 192.168.100.0/24;
 deny all;
 ```
+
+---
+
+Sau bước này, Jenkins sẽ:
+- Chạy an toàn trên HTTPS
+- Bảo vệ theo IP mạng nội bộ
+- Áp dụng xác thực bắt buộc và phân quyền
 
 ---
 
@@ -164,3 +240,15 @@ jenkins:
   - Script console mở
   - CSRF protection
   - Plugin lỗi thời
+
+---
+
+## 8. Kiểm thử cuối cùng
+
+| Kiểm thử                             | Kết quả mong đợi                        |
+|--------------------------------------|------------------------------------------|
+| Truy cập trái phép (IP không hợp lệ) | Bị chặn                                  |
+| Truy cập Jenkins qua HTTPS           | Thành công, chứng chỉ hợp lệ             |
+| User `dev` không sửa job             | Bị từ chối quyền                         |
+| Admin tạo job mới                    | Thành công                               |
+| Ghi log thao tác cấu hình            | Có dòng mới trong `audit.log`           |
