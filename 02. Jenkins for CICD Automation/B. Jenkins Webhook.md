@@ -74,14 +74,9 @@ Cài đặt các plugin:
 pipeline {
     agent any
     triggers {
-        scm('* * * * *')
+        githubPush()
     }
     stages {
-        stage('Clone') {
-            steps {
-                git credentialsId: 'git-key', url: 'git@github.com:yourname/demo-jenkins.git'
-            }
-        }
         stage('Build') {
             steps {
                 echo "Building code..."
