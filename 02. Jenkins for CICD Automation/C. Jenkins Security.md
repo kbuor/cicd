@@ -97,7 +97,7 @@ pipeline {
   stages {
     stage('Secret Test') {
       steps {
-        echo "Using secret: ${MY_SECRET}"
+        echo "Using secret: ${MY_SECRET}" > test_credentials.txt
       }
     }
   }
