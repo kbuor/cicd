@@ -1,4 +1,4 @@
-# Lab GitLab CI/CD trên Ubuntu 24.04 (Mạng 192.168.100.0/24)
+# Lab GitLab CI/CD trên Ubuntu 24.04
 
 ## Mô hình tổng quan
 
